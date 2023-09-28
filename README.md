@@ -87,18 +87,31 @@ Here is an example of how to use VAuth to protect a route:
 ```python
 from fastapi import FastAPI, Depends, HTTPException
 from vauth import VAuth, login
+from vauth import Vauth
 
 app = FastAPI()
+
+# add router to app
+app.include_router(Vauth(),  prefix="/v1/auth")
 
 # Initialize VAuth
 vauth = VAuth()
 
-# Register a new role
-vauth.register("admin", ["read", "create", "update", "delete"], True)
-
-# Register a new user
-token = vauth.register_user("admin", ["*"])
-
+try:
+    # Register a new permission
+    vauth.register("admin", ["read", "create", "update", "delete"], True)
+except Exception as e:
+    print(e)
+try:
+    # Register a new role
+    vauth.add_group("admin", ["admin.read", "admin.create", "admin.update", "admin.delete"])
+except Exception as e:
+    print(e)
+try:
+    # Register a new user
+    token = vauth.register_user("admin", ["*"])
+except Exception as e:
+    print(e)
 # Define a route that requires authentication
 @app.get("/protected")
 def protected_route(token: str = Depends(login)):
