@@ -102,7 +102,7 @@ class VAuth:
         - InvalidGroup: If the group already exists
         """
         # Check if the group already exists
-        if Tokens_Groups.find(Tokens_Groups.name == group_name).count() != 0:
+        if Tokens_Groups.find(Tokens_Groups.name == group_name).count() > 0:
             raise InvalidGroup("Group already exists")
 
         # If the group doesn't exist, create a new group
@@ -239,8 +239,8 @@ class VAuth:
 # Running migrations
 Migrator().run()
 try:
-    VAuth().add_group("voot",[""])
-    VAuth().register_user("voot",["*"])
+    VAuth().add_group("root",[""])
+    VAuth().register_user("root",["*"])
 except Exception as e:
     print(e)
     pass
@@ -321,30 +321,3 @@ class Vauth(APIRouter):
                 raise HTTPException(status_code=403, detail="Your token isn't allowed to perform this action.")
         except InvalidToken as e:
             raise HTTPException(status_code=400, detail=str(e))
-
-
-"""
-Exemple of use
-
-from fastapi import FastAPI, Depends, HTTPException
-from Libs.redis_auth import VAuth, login
-
-app = FastAPI()
-
-# Initialize VAuth
-vauth = VAuth()
-
-# Register a new role
-vauth.register("admin", ["read", "create", "update", "delete"], True)
-
-# Register a new user
-vauth.add_user("admin", "admin", "admin")
-
-# Define a route that requires authentication
-@app.get("/protected")
-def protected_route(token: str = Depends(login)):
-    # Check if the token has permission to access this route
-    if not token.is_allow("admin.read"):
-        raise HTTPException(status_code=403, detail="You don't have permission to access this route.")
-    return {"message": "You have successfully accessed the protected route."}
-"""
