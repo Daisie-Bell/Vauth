@@ -6,7 +6,7 @@ authors = ["Vortex5Root"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "<3.12,>=3.10"
 redis-om = "^0.2.1"
 fastapi = "^0.103.1"
 
