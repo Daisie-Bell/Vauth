@@ -312,11 +312,10 @@ class Vauth(APIRouter):
             raise HTTPException(status_code=400, detail=str(e))
 
     # API endpoint to check if a user is allowed a specific permission
-    def is_allowed(token: str, permission: str, vtoken: str = Depends(login)):
+    def is_allowed(permission: str, vtoken: str = Depends(login)):
         try:
-            if vtoken.is_allow("*"):
-                user = VAuth().login(token)
-                return {"is_allowed": user.is_allow(permission)}
+            if vtoken.is_allow(permission):
+                return {"is_allowed": True}
             else:
                 raise HTTPException(status_code=403, detail="Your token isn't allowed to perform this action.")
         except InvalidToken as e:
