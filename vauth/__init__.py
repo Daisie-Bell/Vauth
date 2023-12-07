@@ -4,40 +4,10 @@ import secrets
 from typing import List
 from uuid import uuid4
 from vauth.DB import Token_User, Tokens_Groups, Reg_Perms
+from vauth.exceptions import InvalidAction, InvalidGroup, InvalidToken, NotRegisterPermission
 from fastapi import APIRouter, HTTPException, Depends, Header
 from typing import Dict
 from redis_om import Migrator
-
-# Custom exception classes for handling specific error scenarios
-
-# If the Action is invalid
-class InvalidAction(Exception):
-    def __init__(self, message="Invalid action"):
-        self.message = message
-        super().__init__(self.message)
-# If the permission is not registered
-class NotRegisterPermission(Exception):
-    def __init__(self, message="Permission not registered"):
-        self.message = message
-        super().__init__(self.message)
-
-# If the token doesn't exist
-class InvalidToken(Exception):
-    def __init__(self, token=None):
-        self.token = token
-        self.message = "Invalid token"
-        if self.token is not None:
-            self.message += f": {self.token}"
-        super().__init__(self.message)
-
-# If the group doesn't exist
-class InvalidGroup(Exception):
-    def __init__(self, group=None):
-        self.group = group
-        self.message = "Invalid group"
-        if self.group is not None:
-            self.message += f": {self.group}"
-        super().__init__(self.message)
 
 # Main class for handling user authentication and permissions
 import secrets
@@ -253,7 +223,7 @@ def login(token : str = Header()):
         raise HTTPException(status_code=400, detail=str(e))
 
 # Defining the VAuth class which inherits from APIRouter
-class Vauth(APIRouter):
+class VAuthAPIRouter(APIRouter):
     # Initializing the class with necessary routes and variables
     def __init__(self, *args, **kwargs):
         self.name = "vauth"

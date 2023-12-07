@@ -29,6 +29,22 @@ class Token_User(JsonModel):
 
 # Define Platform model
 class Tokens_Groups(JsonModel):
+    """
+    A class representing a group token in the database.
+    
+    Attributes:
+    -----------
+    id : Optional[str]
+        The group's ID.
+    token : str
+        The group's token.
+    name : str
+        The group's name.
+    permissions : List[str]
+        A list of the group's permissions.
+    description : Optional[str]
+        An optional description of the group.
+    """
     id: Optional[str] = Field(index=True, primary_key=True)
     name : str = Field(index=True)
     permissions: List[str]

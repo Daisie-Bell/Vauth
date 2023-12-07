@@ -1,15 +1,15 @@
 from fastapi import FastAPI, Depends, HTTPException
 from vauth import VAuth, login
-from vauth import Vauth
+from vauth import VAuthAPIRouter 
 
 
 
 app = FastAPI()
 
 # add router to app
-app.include_router(Vauth(),  prefix="/v1/auth")
+app.include_router(VAuthAPIRouter(),  prefix="/v1/auth")
 
-# Initialize VAuth
+# Initialize VAuthAPIRouter
 vauth = VAuth()
 
 try:

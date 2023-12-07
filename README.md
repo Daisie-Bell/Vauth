@@ -7,7 +7,7 @@ VAuth is a Python implementation of a user authentication and permission managem
 To install VAuth, you can use poetry:
 
 ```bash
-poetry add git+https://github.com/Vortex5Root/Redis_Auth.git
+poetry add git+https://github.com/daisie-bell/vauth.git
 ```
 
 ### Usage
