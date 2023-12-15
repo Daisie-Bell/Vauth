@@ -1,66 +1,66 @@
 # Importing necessary libraries and modules
 import hashlib
-import secrets
-from typing import List
-from uuid import uuid4
-from vauth.DB import Token_User, Tokens_Groups, Reg_Perms
-from vauth.exceptions import InvalidAction, InvalidGroup, InvalidToken, NotRegisterPermission
-from fastapi import APIRouter, HTTPException, Depends, Header
-from typing import Dict
-from redis_om import Migrator
 
 # Main class for handling user authentication and permissions
 import secrets
-import hashlib
 from typing import List
 from uuid import uuid4
+
+from fastapi import Header, HTTPException
+
+from vauth.DB import GroupToken, RegisteredPermissions, UserToken
+from vauth.exceptions import InvalidAction, InvalidGroup, InvalidToken, NotRegisterPermission
+
+
+# Function to login a user
+def login(token: str = Header()):
+    try:
+        return VAuth().login(token)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 
 class VAuth:
     """
     VAuth class for handling user authentication and authorization
     """
 
-    def register_user(self, user_group: str, perms: List[str] = []) -> str:
+    def add_user(self, user_group: str, user_permissions: List[str] = []) -> str:
         """
         Method to register a new user
 
         Args:
         - user_group (str): The name of the user group
-        - perms (List[str]): List of permissions to assign to the user (default [])
+        - user_permissions (List[str]): List of permissions to assign to the user (default [])
 
         Returns:
         - str: The hashed token for the new user
         """
         # Generate a random token
-        token = secrets.token_hex(16)  # This will generate a 32 characters long token
+        token = secrets.token_hex(16)  # This will generate a 32 character long hex token
 
         # Hash the token using SHA512
         hashed_token = hashlib.sha512(token.encode()).hexdigest()
 
         # Check if the token is valid
-        if Token_User.find(Token_User.token == hashed_token).count() != 0:
+        if UserToken.find(UserToken.token == hashed_token).count() != 0:
             raise InvalidToken()
 
         # Check if the group is valid
-        if Tokens_Groups.find(Tokens_Groups.name == user_group).count() != 1:
+        if GroupToken.find(GroupToken.name == user_group).count() != 1:
             raise InvalidGroup()
 
         if isinstance(hashed_token, bytes):
             hashed_token = hashed_token.decode()
 
         # If both checks pass, create a new User
-        new_user = Token_User(
-            id = uuid4().hex,
-            token=hashed_token,
-            group=user_group,
-            permissions=perms
-        )
+        new_user = UserToken(id=uuid4().hex, token=hashed_token, group=user_group, permissions=user_permissions)
 
         # Save the new user to the database
         new_user.save()
         return hashed_token
 
-    def add_group(self, group_name: str,permissions_group : List[str]):
+    def add_group(self, group_name: str, permissions_group: List[str]):
         """
         Method to add a group
 
@@ -72,34 +72,34 @@ class VAuth:
         - InvalidGroup: If the group already exists
         """
         # Check if the group already exists
-        if Tokens_Groups.find(Tokens_Groups.name == group_name).count() > 0:
+        if GroupToken.find(GroupToken.name == group_name).count() > 0:
             raise InvalidGroup("Group already exists")
 
         # If the group doesn't exist, create a new group
-        new_group = Tokens_Groups(id = uuid4().hex,name=group_name,permissions=permissions_group)
+        new_group = GroupToken(id=uuid4().hex, name=group_name, permissions=permissions_group)
 
         # Save the new group to the database
         new_group.save()
 
-    def add_permission_rg(self,path_ : str,action : str):
+    def add_action_to_permission(self, path_: str, action: str):
         """
-        Method to register a new permission
+        Method to add an action to a registed permission
 
         Args:
         - path_ (str): The path to register the permission for
         - action (str): The action to register the permission for
 
         Returns:
-        - Reg_Perms: The newly created permission
+        - RegisteredPermissions: The newly created permission
         """
-        perm = Reg_Perms.find(Reg_Perms.path == path_).first()
-        perm.actions.append(action)
-        perm.save()
-        return perm
+        permission = RegisteredPermissions.find(RegisteredPermissions.path == path_).first()
+        permission.actions.append(action)
+        permission.save()
+        return permission
 
-    def register(self,path_ : str,actions_ : List[str],indexing : bool,description : str = None):
+    def register_permission(self, path_: str, actions_: List[str], indexing: bool, description: str = None):
         """
-        Method to register a new permission
+        Method to register a new permission to the DB
 
         Args:
         - path_ (str): The path to register the permission for
@@ -108,18 +108,13 @@ class VAuth:
         - description (str): Optional description for the permission (default None)
 
         Returns:
-        - Reg_Perms: The newly created permission
+        - RegisteredPermissions: The newly created permission
         """
-        perm = Reg_Perms(
-                    id_index = indexing,
-                    path=path_,
-                    actions=actions_,
-                    description=description
-                )
-        perm.save()
-        return perm
+        permission = RegisteredPermissions(id_index=indexing, path=path_, actions=actions_, description=description)
+        permission.save()
+        return permission
 
-    def login(self,token):
+    def get_user(self, token):
         """
         Method to login a user
 
@@ -135,11 +130,12 @@ class VAuth:
         """
         Inner User class for handling user-specific data and operations
         """
-        token : str
-        user  : Token_User
-        group : Tokens_Groups
 
-        def __init__(self,token,suffix = "*") -> None:
+        token: str
+        user: UserToken
+        group: GroupToken
+
+        def __init__(self, token, suffix="*") -> None:
             """
             Initialize User with a token and optional suffix
 
@@ -150,45 +146,38 @@ class VAuth:
             Raises:
             - InvalidToken: If the token is invalid
             """
-            if Token_User.find(Token_User.token == token).count() == 1:
-                self.token  = token
+            if UserToken.find(UserToken.token == token).count() == 1:
+                self.token = token
                 self.suffix = suffix
-                self.start()
+                self.user = UserToken.find(UserToken.token == self.token).first()
+                self.group = GroupToken.find(GroupToken.name == self.user.group).first()
             else:
                 raise InvalidToken()
-            
-        def start(self):
-            """
-            Start method to initialize user and group data
-            """
-            self.user  = Token_User.find(Token_User.token == self.token).first()
-            self.group = Tokens_Groups.find(Tokens_Groups.name == self.user.group).first()
 
-        def add_permission(self,perm : str):
+        def add_permission(self, permission: str):
             """
             Method to add a permission to a user
 
             Args:
-            - perm (str): The permission to add
+            - permission (str): The permission to add
 
             Raises:
             - InvalidAction: If the action is invalid
             - NotRegisterPermission: If the permission is not registered
             """
-            _ = perm.split(".")
-            path   = _[0]
+            _ = permission.split(".")
             action = _[1]
-            reg = Reg_Perms.find(Reg_Perms.path == path).first()
-            
+            reg = RegisteredPermissions.find(RegisteredPermissions.path == permission).first()
+
             if reg != [] or reg is not None:
                 if action in reg.actions:
-                    self.user.permissions.append(perm)
+                    self.user.permissions.append(permission)
                     self.user.save()
-                    return {"message":f"permission added successfaly"}
+                    return {"message": f"permission added successfully to user {self.user.id}"}
                 raise InvalidAction()
             raise NotRegisterPermission()
-        
-        def is_allow(self,permission):
+
+        def has_permission(self, permission):
             """
             Method to check if a user has a specific permission
 
@@ -202,91 +191,10 @@ class VAuth:
                 for _ in permission:
                     if (_ in self.user.permissions) or (_ in self.group.permissions) or ("*" in self.user.permissions):
                         return True
-            elif (permission in self.user.permissions) or (permission in self.group.permissions) or ("*" in self.user.permissions):
+            elif (
+                (permission in self.user.permissions)
+                or (permission in self.group.permissions)
+                or ("*" in self.user.permissions)
+            ):
                 return True
             return False
-
-# Running migrations
-Migrator().run()
-try:
-    VAuth().add_group("root",[""])
-    VAuth().register_user("root",["*"])
-except Exception as e:
-    print(e)
-    pass
-
-# Function to login a user
-def login(token : str = Header()):
-    try:
-        return VAuth().login(token)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-# Defining the VAuth class which inherits from APIRouter
-class VAuthAPIRouter(APIRouter):
-    # Initializing the class with necessary routes and variables
-    def __init__(self, *args, **kwargs):
-        self.name = "vauth"
-        self.global_local = "vauth.*"
-        super().__init__(*args, **kwargs)
-        print(VAuth().register("platform",["read","create","update","delete"],True))
-        # Adding routes for different HTTP methods
-        self.add_api_route("/register_edit_permission", self.register_permission,  methods=["POST"], dependencies=[Depends(login)])
-        self.add_api_route("/add_group", self.add_group, methods=["POST"], dependencies=[Depends(login)])
-        self.add_api_route("/register_user", self.register_user, methods=["POST"], dependencies=[Depends(login)])
-        self.add_api_route("/set_permission", self.add_permission, methods=["POST"], dependencies=[Depends(login)])
-        self.add_api_route("/test_permission", self.is_allowed, methods=["GET"], dependencies=[Depends(login)])
-    
-    # API endpoint to register a new permission
-    def register_permission(permission: Dict, vtoken: str = Depends(login)):
-        try:
-            if vtoken.is_allow("*"):
-                perm = VAuth().register(permission['path'], permission['actions'], permission['indexing'], permission['description'])
-                return {"message": "Permission registered successfully", "permission": perm}
-            else:
-                raise HTTPException(status_code=403, detail="Your token isn't allowed to perform this action.")
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=str(e))
-    # API endpoint to add a group
-    def add_group(group: str, perms: List[str], vtoken: str = Depends(login)):
-        try:
-            if vtoken.is_allow("*"):
-                VAuth().add_group(group, perms)
-                return {"message": "Group added successfully"}
-            else:
-                raise HTTPException(status_code=403, detail="Your token isn't allowed to perform this action.")
-        except InvalidGroup as e:
-            raise HTTPException(status_code=400, detail=str(e))
-
-    # API endpoint to register a user
-    def register_user(group_name: str, perms: List[str], vtoken: str = Depends(login)):
-        try:
-            if vtoken.is_allow("*"):
-                user = VAuth().register_user(group_name, perms)
-                return {"message": "User registered successfully","user":user}
-            else:
-                raise HTTPException(status_code=403, detail="Your token isn't allowed to perform this action.")
-        except (InvalidToken, InvalidGroup) as e:
-            raise HTTPException(status_code=400, detail=str(e))
-
-    # API endpoint to add a permission to a user
-    def add_permission(token: str, permission: str, vtoken: str = Depends(login)):
-        try:
-            if vtoken.is_allow("*"):
-                user = VAuth().login(token)
-                user.add_permission(permission)
-                return {"message": "Permission added successfully"}
-            else:
-                raise HTTPException(status_code=403, detail="Your token isn't allowed to perform this action.")
-        except (InvalidToken, InvalidAction, NotRegisterPermission) as e:
-            raise HTTPException(status_code=400, detail=str(e))
-
-    # API endpoint to check if a user is allowed a specific permission
-    def is_allowed(permission: str, vtoken: str = Depends(login)):
-        try:
-            if vtoken.is_allow(permission):
-                return {"is_allowed": True}
-            else:
-                raise HTTPException(status_code=403, detail="Your token isn't allowed to perform this action.")
-        except InvalidToken as e:
-            raise HTTPException(status_code=400, detail=str(e))

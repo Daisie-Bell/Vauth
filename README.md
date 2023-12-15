@@ -1,6 +1,6 @@
-## VAuth - User Authentication and Permission Management System
+## VAuth - User Authentication and Permission Management
 
-VAuth is a Python implementation of a user authentication and permission management system using FastAPI and Redis. It includes classes and methods for registering users, groups, and permissions, as well as checking if a user has permission to perform a certain action.
+VAuth is a Python tool for user authentication and permission management using FastAPI and Redis. It includes classes and methods for registering users, groups, and their permissions, as well as checking if a user has permission to perform a certain action.
 
 ### Installation
 
@@ -19,6 +19,15 @@ from vauth import VAuth
 
 vauth = VAuth()
 ```
+#### Adding a Group
+
+To add a new group, you can use the `add_group` method:
+
+```python
+vauth.add_group("admin", ["read", "create", "update", "delete"])
+```
+
+This will create a new group with the specified name and permissions.
 
 #### Registering a New User
 
@@ -29,16 +38,6 @@ token = vauth.register_user("admin", ["read", "create", "update", "delete"])
 ```
 
 This will create a new user with the specified group and permissions, and return a hashed token for the user.
-
-#### Adding a Group
-
-To add a new group, you can use the `add_group` method:
-
-```python
-vauth.add_group("admin", ["read", "create", "update", "delete"])
-```
-
-This will create a new group with the specified name and permissions.
 
 #### Registering a New Permission
 
@@ -72,10 +71,10 @@ This will add the specified permission to the user.
 
 #### Checking if a User Has Permission
 
-To check if a user has permission to perform a certain action, you can use the `is_allow` method:
+To check if a user has permission to perform a certain action, you can use the `has_permission` method:
 
 ```python
-user.is_allow("admin.read")
+user.has_permission("admin.read")
 ```
 
 This will return `True` if the user has permission to perform the specified action, and `False` otherwise.

@@ -5,11 +5,14 @@ class InvalidAction(Exception):
     def __init__(self, message="Invalid action"):
         self.message = message
         super().__init__(self.message)
+
+
 # If the permission is not registered
 class NotRegisterPermission(Exception):
     def __init__(self, message="Permission not registered"):
         self.message = message
         super().__init__(self.message)
+
 
 # If the token doesn't exist
 class InvalidToken(Exception):
@@ -19,6 +22,7 @@ class InvalidToken(Exception):
         if self.token is not None:
             self.message += f": {self.token}"
         super().__init__(self.message)
+
 
 # If the group doesn't exist
 class InvalidGroup(Exception):

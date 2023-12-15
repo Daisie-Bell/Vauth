@@ -1,10 +1,10 @@
-
-from typing import Any, List, Optional
+from typing import List, Optional
 
 from redis_om import Field, JsonModel
 
+
 # Define Platform model
-class Token_User(JsonModel):
+class UserToken(JsonModel):
     """
     A class representing a user token in the database.
 
@@ -21,17 +21,19 @@ class Token_User(JsonModel):
     permissions : List[str]
         A list of the user's permissions.
     """
+
     id: Optional[str] = Field(index=True, primary_key=True)
     token: str = Field(index=True)
-    group : str = Field(index=True)
-    email : Optional[str] = Field(index=True)
-    permissions : List[str]
+    group: str = Field(index=True)
+    email: Optional[str] = Field(index=True)
+    permissions: List[str]
+
 
 # Define Platform model
-class Tokens_Groups(JsonModel):
+class GroupToken(JsonModel):
     """
     A class representing a group token in the database.
-    
+
     Attributes:
     -----------
     id : Optional[str]
@@ -45,13 +47,15 @@ class Tokens_Groups(JsonModel):
     description : Optional[str]
         An optional description of the group.
     """
+
     id: Optional[str] = Field(index=True, primary_key=True)
-    name : str = Field(index=True)
+    name: str = Field(index=True)
     permissions: List[str]
-    description : Optional[str]
+    description: Optional[str]
+
 
 # Define Platform model
-class Reg_Perms(JsonModel):
+class RegisteredPermissions(JsonModel):
     """
     A model representing registered permissions in the database.
 
@@ -66,7 +70,8 @@ class Reg_Perms(JsonModel):
     description : Optional[str]
         An optional description of the permission.
     """
-    id_index    : bool
-    path        : str = Field(index=True, primary_key=True)
-    actions     : List[str]
-    description : Optional[str]
+
+    id_index: bool
+    path: str = Field(index=True, primary_key=True)
+    actions: List[str]
+    description: Optional[str]
