@@ -14,6 +14,12 @@ class NotRegisterPermission(Exception):
         super().__init__(self.message)
 
 
+class InvalidPermission(Exception):
+    def __init__(self, message="Invalid permission"):
+        self.message = message
+        super().__init__(self.message)
+
+
 # If the token doesn't exist
 class InvalidToken(Exception):
     def __init__(self, token=None):

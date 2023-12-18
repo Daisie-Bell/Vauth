@@ -22,8 +22,7 @@ class UserToken(JsonModel):
         A list of the user's permissions.
     """
 
-    id: Optional[str] = Field(index=True, primary_key=True)
-    token: str = Field(index=True)
+    token: str = Field(index=True, primary_key=True)
     group: str = Field(index=True)
     email: Optional[str] = Field(index=True)
     permissions: List[str]
@@ -48,8 +47,7 @@ class GroupToken(JsonModel):
         An optional description of the group.
     """
 
-    id: Optional[str] = Field(index=True, primary_key=True)
-    name: str = Field(index=True)
+    name: str = Field(index=True, primary_key=True)
     permissions: List[str]
     description: Optional[str]
 
@@ -64,8 +62,8 @@ class RegisteredPermissions(JsonModel):
     id_index : bool
         A boolean indicating whether the ID should be indexed.
     path : str
-        The path of the permission.
-    actions : List[str]
+        The path representing the permission.
+    actions : List[str]er
         A list of actions associated with the permission.
     description : Optional[str]
         An optional description of the permission.
