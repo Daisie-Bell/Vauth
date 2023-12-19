@@ -1,10 +1,10 @@
-
-from typing import Any, List, Optional
+from typing import List, Optional
 
 from redis_om import Field, JsonModel
 
+
 # Define Platform model
-class Token_User(JsonModel):
+class UserToken(JsonModel):
     """
     A class representing a user token in the database.
 
@@ -21,21 +21,39 @@ class Token_User(JsonModel):
     permissions : List[str]
         A list of the user's permissions.
     """
-    id: Optional[str] = Field(index=True, primary_key=True)
-    token: str = Field(index=True)
-    group : str = Field(index=True)
-    email : Optional[str] = Field(index=True)
-    permissions : List[str]
 
-# Define Platform model
-class Tokens_Groups(JsonModel):
-    id: Optional[str] = Field(index=True, primary_key=True)
-    name : str = Field(index=True)
+    token: str = Field(index=True, primary_key=True)
+    group: str = Field(index=True)
+    email: Optional[str] = Field(index=True)
     permissions: List[str]
-    description : Optional[str]
+
 
 # Define Platform model
-class Reg_Perms(JsonModel):
+class GroupToken(JsonModel):
+    """
+    A class representing a group token in the database.
+
+    Attributes:
+    -----------
+    id : Optional[str]
+        The group's ID.
+    token : str
+        The group's token.
+    name : str
+        The group's name.
+    permissions : List[str]
+        A list of the group's permissions.
+    description : Optional[str]
+        An optional description of the group.
+    """
+
+    name: str = Field(index=True, primary_key=True)
+    permissions: List[str]
+    description: Optional[str]
+
+
+# Define Platform model
+class RegisteredPermissions(JsonModel):
     """
     A model representing registered permissions in the database.
 
@@ -44,13 +62,14 @@ class Reg_Perms(JsonModel):
     id_index : bool
         A boolean indicating whether the ID should be indexed.
     path : str
-        The path of the permission.
-    actions : List[str]
+        The path representing the permission.
+    actions : List[str]er
         A list of actions associated with the permission.
     description : Optional[str]
         An optional description of the permission.
     """
-    id_index    : bool
-    path        : str = Field(index=True, primary_key=True)
-    actions     : List[str]
-    description : Optional[str]
+
+    id_index: bool
+    path: str = Field(index=True, primary_key=True)
+    actions: List[str]
+    description: Optional[str]
