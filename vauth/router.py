@@ -20,7 +20,7 @@ class VAuthAPIRouter(APIRouter):
         )
         self.add_api_route("/add_group", self.add_group, methods=["POST"], dependencies=[Depends(login)])
         self.add_api_route("/register_user", self.register_user, methods=["POST"], dependencies=[Depends(login)])
-        self.add_api_route("/set_permission", self.add_permission, methods=["POST"], dependencies=[Depends(login)])
+        self.add_api_route("/set_permission", self.add_user_permission, methods=["POST"], dependencies=[Depends(login)])
         self.add_api_route("/test_permission", self.has_permission, methods=["GET"], dependencies=[Depends(login)])
 
     # API endpoint to register a new permission
