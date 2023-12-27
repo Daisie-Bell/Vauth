@@ -13,7 +13,7 @@ class VAuthAPIRouter(APIRouter):
         self.name = "vauth"
         self.global_local = "vauth.*"
         super().__init__(*args, **kwargs)
-        print(VAuth().register("platform", ["read", "create", "update", "delete"], True))
+        print(VAuth().register_permission("vauth", ["read", "create", "update", "delete"], True))
         # Adding routes for different HTTP methods
         self.add_api_route(
             "/register_edit_permission", self.register_permission, methods=["POST"], dependencies=[Depends(login)]
@@ -27,7 +27,7 @@ class VAuthAPIRouter(APIRouter):
     def register_permission(self, permission: Dict, vtoken: str = Depends(login)):
         try:
             if vtoken.has_permission("*"):
-                perm = VAuth().register(
+                perm = VAuth().register_permission(
                     permission["path"], permission["actions"], permission["indexing"], permission["description"]
                 )
                 return {"message": "Permission registered successfully", "permission": perm}
@@ -51,7 +51,7 @@ class VAuthAPIRouter(APIRouter):
     def register_user(self, group_name: str, perms: List[str], vtoken: str = Depends(login)):
         try:
             if vtoken.has_permission("*"):
-                user = VAuth().register_user(group_name, perms)
+                user = VAuth().add_user(group_name, perms)
                 return {"message": "User registered successfully", "user": user}
             else:
                 raise HTTPException(status_code=403, detail="Your token isn't allowed to perform this action.")
