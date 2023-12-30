@@ -6,7 +6,7 @@ from vauth import VAuth
 Migrator().run()
 try:
     VAuth().add_group("root", [""])
-    VAuth().register_user("root", ["*"])
+    VAuth().add_user("root", ["*"])
 except Exception as e:
     print(e)
     pass
